@@ -67,8 +67,15 @@ void WinShow(HDC dc)
     SelectObject(memDC, memBM);
 
     SelectObject(memDC, GetStockObject(DC_BRUSH));
-    SetDCBrushColor(memDC, RGB(255, 255, 255));
-    Rectangle(memDC, 0, 0, 640, 480); //rct
+    SetDCBrushColor(memDC, RGB(200, 200, 200));
+    SelectObject(memDC, GetStockObject(DC_PEN));
+    SetDCPenColor(memDC, RGB(255, 255, 255));
+    int rectSize = 200;
+    int dx = (int)offset.x % rectSize;
+    int dy = (int)offset.y % rectSize;
+    for (int i = -1; i < rct.right / rectSize + 2; i++)
+        for (int j = -1; j < rct.bottom / rectSize + 2; j++)
+            Rectangle(memDC, -dx + i * rectSize, -dy + j * rectSize, -dx + (i + 1) * rectSize, -dy + (j + 1) * rectSize);
 
     player.objectShow(memDC, offset);
     for (int i = 0; i < masCnt; i++)
