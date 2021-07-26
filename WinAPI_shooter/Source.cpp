@@ -7,8 +7,9 @@ using namespace std;
 
 RECT rct;
 object player;
-int masCnt = 0;
 object* masObject;
+int masCnt = 0;
+point offset;
 
 void WinShow(HDC dc); 
 void WinMove();
@@ -17,6 +18,7 @@ void NewObject(float xPos, float yPos, float width, float height, TYPE type);
 void AddBullet(float x, float y);
 void AddEnemy();
 void DelObject();
+void ChangeOffset();
 
 LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
@@ -64,14 +66,13 @@ void WinShow(HDC dc)
     HBITMAP memBM = CreateCompatibleBitmap(dc, rct.right - rct.left, rct.bottom - rct.top);
     SelectObject(memDC, memBM);
 
-
     SelectObject(memDC, GetStockObject(DC_BRUSH));
     SetDCBrushColor(memDC, RGB(255, 255, 255));
     Rectangle(memDC, 0, 0, 640, 480); //rct
 
-    player.objectShow(memDC);
+    player.objectShow(memDC, offset);
     for (int i = 0; i < masCnt; i++)
-        masObject[i].objectShow(memDC);
+        masObject[i].objectShow(memDC, offset);
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
     DeleteDC(memDC);
@@ -82,6 +83,7 @@ void WinMove()
 {
     //player.control();
     player.objectMove();
+    ChangeOffset();
 
     for (int i = 0; i < masCnt; i++)
         masObject[i].objectMove(&player);
@@ -182,6 +184,14 @@ void DelObject()
     }
 }
 
+void ChangeOffset()
+{
+    float x, y;
+    player.GetPos(x, y);
+    offset.x = x + 20 - rct.right / 2;
+    offset.y = y + 20 - rct.bottom / 2;
+}
+
 LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (message == WM_DESTROY)
@@ -207,7 +217,7 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     {
         int xPos = LOWORD(lparam);
         int yPos = HIWORD(lparam);
-        AddBullet(xPos, yPos);
+        AddBullet(xPos + offset.x, yPos + offset.y);
     }
 
     else if (message == WM_RBUTTONDOWN)
