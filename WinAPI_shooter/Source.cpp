@@ -10,6 +10,10 @@ object player;
 object* masObject;
 int masCnt = 0;
 point offset;
+BOOL newGame = FALSE;
+
+HWND hwnd;
+HDC dc;
 
 void WinShow(HDC dc); 
 void WinMove();
@@ -31,8 +35,8 @@ int main()
     wlc.hCursor = LoadCursorA(NULL, (LPCSTR)IDC_CROSS);
     RegisterClassA(&wlc);
 
-    HWND hwnd = CreateWindowExA(NULL, "my Window", "Window", WS_OVERLAPPEDWINDOW, 10, 10, 640, 480, NULL, NULL, NULL, NULL);
-    HDC dc = GetDC(hwnd);
+    hwnd = CreateWindowExA(NULL, "my Window", "Window", WS_OVERLAPPEDWINDOW, 10, 10, 640, 480, NULL, NULL, NULL, NULL);
+    dc = GetDC(hwnd);
     ShowWindow(hwnd, SW_SHOWNORMAL);
 
     WinInit();
@@ -88,12 +92,18 @@ void WinShow(HDC dc)
 
 void WinMove()
 {
-    //player.control();
+    if (newGame)
+        WinInit();
+
     player.objectMove();
     ChangeOffset();
 
     for (int i = 0; i < masCnt; i++)
-        masObject[i].objectMove(&player);
+    {
+        newGame = masObject[i].objectMove(&player);
+        if (newGame)
+            break;
+    }
 
     for (int i = 0; i < masCnt - 1; i++)
     {
@@ -118,9 +128,12 @@ void WinMove()
 
 void WinInit()
 {
+    newGame = FALSE;
+    if (masCnt > 0)
+        delete[] masObject;
+    masCnt = 0;
+
     player.objectInit(100, 100, 40, 40, PLAYER);
-    NewObject(400, 100, 40, 40, ENEMY);
-    NewObject(400, 300, 40, 40, ENEMY);
 }
 
 void NewObject(float xPos, float yPos, float width, float height, TYPE type)

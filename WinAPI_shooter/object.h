@@ -28,15 +28,13 @@ public:
 
 	void objectInit(float xPos, float yPos, float width, float height, TYPE oType);
 	void objectShow(HDC dc, point offset);
-	void objectMove(object* player = NULL);
+	BOOL objectMove(object* player = NULL);
 	void objectDestination(float xPos, float yPos, float vecSpeed);
 
 	void GetPos(float& xPos, float& yPos);
 	TYPE GetType();
 	BOOL GetIsDel();
 
-	//void control();
-
 	object& operator=(object& obj);
-	friend void CrossingObject(object& obj1, object& obj2);
+	friend BOOL CrossingObject(object& obj1, object& obj2);
 };

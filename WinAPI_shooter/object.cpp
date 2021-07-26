@@ -56,7 +56,7 @@ void object::objectShow(HDC dc, point offset)
 	shape(dc, (int)(pos.x - offset.x), (int)(pos.y - offset.y), (int)(pos.x + size.x - offset.x), (int)(pos.y + size.y - offset.y));
 }
 
-void object::objectMove(object *player)
+BOOL object::objectMove(object *player)
 {
 	if (type == ENEMY)
 	{
@@ -65,6 +65,8 @@ void object::objectMove(object *player)
 			float enemySpeed = 1.5;
 			objectDestination(player->pos.x, player->pos.y, enemySpeed);
 		}
+		if (CrossingObject(*player, *this))
+			return TRUE;
 	}
 
 	if (type == PLAYER)
@@ -95,6 +97,8 @@ void object::objectMove(object *player)
 
 	pos.x += speed.x;
 	pos.y += speed.y;
+
+	return FALSE;
 }
 
 void object::objectDestination(float xPos, float yPos, float vecSpeed)
@@ -139,37 +143,15 @@ object& object::operator=(object& obj)
 	return *this;
 }
 
-void CrossingObject(object& obj1, object& obj2)
+BOOL CrossingObject(object& obj1, object& obj2)
 {
-	float xCenter = obj2.pos.x + obj2.size.x / 2;
-	float yCenter = obj2.pos.y + obj2.size.y / 2;
-	if (xCenter > obj1.pos.x && xCenter < obj1.pos.x + obj1.size.x && yCenter > obj1.pos.y && yCenter < obj1.pos.y + obj1.size.y)
+
+	if ((obj1.pos.x + obj1.size.x) > obj2.pos.x && (obj2.pos.x + obj2.size.x) > obj1.pos.x &&
+		(obj1.pos.y + obj1.size.y) > obj2.pos.y && (obj2.pos.y + obj2.size.y) > obj1.pos.y)
 	{
 		obj1.isDel = TRUE;
 		obj2.isDel = TRUE;
+		return TRUE;
 	}
-}
-
-
-
-
-
-
-//void object::control()
-//{
-//	int playerSpeed = 2;
-//	pointInit(speed, 0, 0);
-//	if (GetKeyState('W') < 0)
-//		speed.y = -playerSpeed;
-//	if (GetKeyState('A') < 0)
-//		speed.x = -playerSpeed;
-//	if (GetKeyState('S') < 0)
-//		speed.y = playerSpeed;
-//	if (GetKeyState('D') < 0)
-//		speed.x = playerSpeed;
-//	if (speed.x != 0 && speed.y != 0)
-//	{
-//		speed.x *= 0.7;
-//		speed.y *= 0.7;
-//	}
-//}
+	return FALSE;
+}	
