@@ -15,13 +15,13 @@ BOOL newGame = FALSE;
 HWND hwnd;
 HDC dc;
 
-void WinShow(HDC dc); 
-void WinMove();
 void WinInit();
+void WinMove();
+void WinShow(HDC dc); 
 void NewObject(float xPos, float yPos, float width, float height, TYPE type);
+void DelObject();
 void AddBullet(float x, float y);
 void AddEnemy();
-void DelObject();
 void ChangeOffset();
 
 LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
@@ -64,32 +64,18 @@ int main()
     return 0;
 }
 
-void WinShow(HDC dc)
+// Функция инициализации игры
+void WinInit()
 {
-    HDC memDC = CreateCompatibleDC(dc);
-    HBITMAP memBM = CreateCompatibleBitmap(dc, rct.right - rct.left, rct.bottom - rct.top);
-    SelectObject(memDC, memBM);
+    newGame = FALSE;
+    if (masCnt > 0)
+        delete[] masObject;
+    masCnt = 0;
 
-    SelectObject(memDC, GetStockObject(DC_BRUSH));
-    SetDCBrushColor(memDC, RGB(200, 200, 200));
-    SelectObject(memDC, GetStockObject(DC_PEN));
-    SetDCPenColor(memDC, RGB(255, 255, 255));
-    int rectSize = 200;
-    int dx = (int)offset.x % rectSize;
-    int dy = (int)offset.y % rectSize;
-    for (int i = -1; i < rct.right / rectSize + 2; i++)
-        for (int j = -1; j < rct.bottom / rectSize + 2; j++)
-            Rectangle(memDC, -dx + i * rectSize, -dy + j * rectSize, -dx + (i + 1) * rectSize, -dy + (j + 1) * rectSize);
-
-    player.objectShow(memDC, offset);
-    for (int i = 0; i < masCnt; i++)
-        masObject[i].objectShow(memDC, offset);
-
-    BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
-    DeleteDC(memDC);
-    DeleteObject(memBM);
+    player.objectInit(100, 100, 40, 40, PLAYER);
 }
 
+// Функция, реализующая сдвиг всех объектов и удаление ненужных
 void WinMove()
 {
     if (newGame)
@@ -126,14 +112,31 @@ void WinMove()
     DelObject();
 }
 
-void WinInit()
+// Функция реализации изображения игры 
+void WinShow(HDC dc)
 {
-    newGame = FALSE;
-    if (masCnt > 0)
-        delete[] masObject;
-    masCnt = 0;
+    HDC memDC = CreateCompatibleDC(dc);
+    HBITMAP memBM = CreateCompatibleBitmap(dc, rct.right - rct.left, rct.bottom - rct.top);
+    SelectObject(memDC, memBM);
 
-    player.objectInit(100, 100, 40, 40, PLAYER);
+    SelectObject(memDC, GetStockObject(DC_BRUSH));
+    SetDCBrushColor(memDC, RGB(230, 230, 230));
+    SelectObject(memDC, GetStockObject(DC_PEN));
+    SetDCPenColor(memDC, RGB(255, 255, 255));
+    int rectSize = 200;
+    int dx = (int)offset.x % rectSize;
+    int dy = (int)offset.y % rectSize;
+    for (int i = -1; i < rct.right / rectSize + 2; i++)
+        for (int j = -1; j < rct.bottom / rectSize + 2; j++)
+            Rectangle(memDC, -dx + i * rectSize, -dy + j * rectSize, -dx + (i + 1) * rectSize, -dy + (j + 1) * rectSize);
+
+    player.objectShow(memDC, offset);
+    for (int i = 0; i < masCnt; i++)
+        masObject[i].objectShow(memDC, offset);
+
+    BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
+    DeleteDC(memDC);
+    DeleteObject(memBM);
 }
 
 void NewObject(float xPos, float yPos, float width, float height, TYPE type)
@@ -151,28 +154,6 @@ void NewObject(float xPos, float yPos, float width, float height, TYPE type)
     
     masObject[masCnt].objectInit(xPos, yPos, width, height, type);
     masCnt++;
-}
-
-void AddBullet(float x, float y)
-{
-    float xPos, yPos;
-    player.GetPos(xPos, yPos);
-    NewObject(xPos + 20, yPos + 20, 10, 10, BULLET);
-    masObject[masCnt - 1].objectDestination(x, y, 4);
-}
-
-void AddEnemy()
-{
-    int rad = 300;
-    int pos1 = (rand() % 2 == 1) ? rad : -rad;
-    int pos2 = (rand() % (rad * 2)) - rad;
-    float x, y;
-    player.GetPos(x, y);
-    int k = rand() % 120;
-    if (k == 1)
-        NewObject(pos1 + x, pos2 + y, 40, 40, ENEMY);
-    if (k == 2)
-        NewObject(pos2 + x, pos1 + y, 40, 40, ENEMY);
 }
 
 void DelObject()
@@ -202,6 +183,28 @@ void DelObject()
             masCnt--;
         }
     }
+}
+
+void AddBullet(float x, float y)
+{
+    float xPos, yPos;
+    player.GetPos(xPos, yPos);
+    NewObject(xPos + 20, yPos + 20, 10, 10, BULLET);
+    masObject[masCnt - 1].objectDestination(x, y, 4);
+}
+
+void AddEnemy()
+{
+    int rad = 300;
+    int pos1 = (rand() % 2 == 1) ? rad : -rad;
+    int pos2 = (rand() % (rad * 2)) - rad;
+    float x, y;
+    player.GetPos(x, y);
+    int k = rand() % 120;
+    if (k == 1)
+        NewObject(pos1 + x, pos2 + y, 40, 40, ENEMY);
+    if (k == 2)
+        NewObject(pos2 + x, pos1 + y, 40, 40, ENEMY);
 }
 
 void ChangeOffset()

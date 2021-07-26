@@ -2,6 +2,7 @@
 
 #include "object.h"
 
+// Функция для инициализации точки
 void pointInit(point& pnt, float x, float y)
 {
 	pnt.x = x;
@@ -20,6 +21,7 @@ object::object()
 	isDel = FALSE;
 }
 
+// Конструктор копирования для реализации передачи объектов в функции 
 object::object(const object& obj)
 {
 	pointInit(pos, obj.pos.x, obj.pos.y);
@@ -32,6 +34,7 @@ object::object(const object& obj)
 	isDel = obj.isDel;
 }
 
+// Функция для инициализации объекта класса
 void object::objectInit(float xPos, float yPos, float width, float height, TYPE oType)
 {
 	pointInit(pos, xPos, yPos);
@@ -45,19 +48,22 @@ void object::objectInit(float xPos, float yPos, float width, float height, TYPE 
 	isDel = FALSE;
 }
 
+// Функция отображает объект в контексте устройства
 void object::objectShow(HDC dc, point offset)
 {
 	SelectObject(dc, GetStockObject(DC_BRUSH));
 	SetDCBrushColor(dc, color);
 	SelectObject(dc, GetStockObject(DC_PEN));
-	SetDCPenColor(dc, RGB(0, 0, 0));
+	(color == RGB(176, 0, 0)) ? SetDCPenColor(dc, RGB(100, 0, 0)) : SetDCPenColor(dc, RGB(0, 100, 0));
 	BOOL(_stdcall *shape)(HDC, int, int, int, int);
 	shape = (type == ENEMY) ? Ellipse : Rectangle;
 	shape(dc, (int)(pos.x - offset.x), (int)(pos.y - offset.y), (int)(pos.x + size.x - offset.x), (int)(pos.y + size.y - offset.y));
 }
 
+// Функция, производящая изменение координат объекта
 BOOL object::objectMove(object *player)
 {
+	// Изменение направления движения врага и проверка на столкновение с игроком
 	if (type == ENEMY)
 	{
 		if (rand() % 40 == 1)
@@ -69,6 +75,7 @@ BOOL object::objectMove(object *player)
 			return TRUE;
 	}
 
+	// Изменение направления движения игрока в зависимости от нажатых клавиш
 	if (type == PLAYER)
 	{
 		int playerSpeed = 2;
@@ -88,6 +95,7 @@ BOOL object::objectMove(object *player)
 		}
 	}
 
+	// Проверка движения пули, если расстояние привышает 300 пикселей, то пуля удаляется
 	if (type == BULLET)
 	{
 		range -= vecSpeed;
@@ -101,6 +109,7 @@ BOOL object::objectMove(object *player)
 	return FALSE;
 }
 
+// Функция задания скорости объекта в зависимости от конечной точки
 void object::objectDestination(float xPos, float yPos, float vecSpeed)
 {
 	point pnt;
@@ -110,7 +119,7 @@ void object::objectDestination(float xPos, float yPos, float vecSpeed)
 	speed.y = pnt.y / dxy * vecSpeed;
 	this->vecSpeed = vecSpeed;
 }
-
+ 
 void object::GetPos(float& xPos, float& yPos)
 {
 	xPos = pos.x;
@@ -143,6 +152,7 @@ object& object::operator=(object& obj)
 	return *this;
 }
 
+// Дружественная функция для проверки пересечения двух объектов
 BOOL CrossingObject(object& obj1, object& obj2)
 {
 
