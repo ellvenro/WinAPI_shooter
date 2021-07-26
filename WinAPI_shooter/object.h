@@ -27,7 +27,7 @@ public:
 	object(const object& obj);
 
 	void objectInit(float xPos, float yPos, float width, float height, TYPE oType);
-	void objectShow(HDC dc);
+	void objectShow(HDC dc, point offset);
 	void objectMove(object* player = NULL);
 	void objectDestination(float xPos, float yPos, float vecSpeed);
 

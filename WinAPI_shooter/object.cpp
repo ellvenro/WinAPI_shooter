@@ -45,7 +45,7 @@ void object::objectInit(float xPos, float yPos, float width, float height, TYPE 
 	isDel = FALSE;
 }
 
-void object::objectShow(HDC dc)
+void object::objectShow(HDC dc, point offset)
 {
 	SelectObject(dc, GetStockObject(DC_BRUSH));
 	SetDCBrushColor(dc, color);
@@ -53,7 +53,7 @@ void object::objectShow(HDC dc)
 	SetDCPenColor(dc, RGB(0, 0, 0));
 	BOOL(_stdcall *shape)(HDC, int, int, int, int);
 	shape = (type == ENEMY) ? Ellipse : Rectangle;
-	shape(dc, (int)pos.x, (int)pos.y, (int)(pos.x + size.x), (int)(pos.y + size.y));
+	shape(dc, (int)(pos.x - offset.x), (int)(pos.y - offset.y), (int)(pos.x + size.x - offset.x), (int)(pos.y + size.y - offset.y));
 }
 
 void object::objectMove(object *player)
