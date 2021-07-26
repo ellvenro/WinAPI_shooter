@@ -155,7 +155,7 @@ void AddEnemy()
     int pos2 = (rand() % (rad * 2)) - rad;
     float x, y;
     player.GetPos(x, y);
-    int k = rand() % 100;
+    int k = rand() % 120;
     if (k == 1)
         NewObject(pos1 + x, pos2 + y, 40, 40, ENEMY);
     if (k == 2)
