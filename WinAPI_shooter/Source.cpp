@@ -11,6 +11,7 @@ object* masObject;
 int masCnt = 0;
 point offset;
 BOOL newGame = FALSE;
+BOOL isGame = FALSE;
 
 HWND hwnd;
 HDC dc;
@@ -40,7 +41,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
     dc = GetDC(hwnd);
     ShowWindow(hwnd, SW_SHOWNORMAL);
 
-    WinInit();
+    //WinInit();
 
     MSG msg;
     while (1)
@@ -54,9 +55,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
         }
         else
         {
-            WinMove();
-            WinShow(dc);
-            Sleep(5);
+            if (isGame)
+            {
+                WinMove();
+                WinShow(dc);
+                Sleep(5);
+            }
         }
     }
     if (masCnt > 0)
@@ -68,6 +72,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 // Функция инициализации игры
 void WinInit()
 {
+    isGame = TRUE;
     newGame = FALSE;
     if (masCnt > 0)
         delete[] masObject;
@@ -76,11 +81,16 @@ void WinInit()
     player.objectInit(100, 100, 40, 40, PLAYER);
 }
 
-// Функция, реализующая сдвиг всех объектов и удаление ненужны
+// Функция, реализующая сдвиг всех объектов и удаление ненужных
 void WinMove()
 {
     if (newGame)
-        WinInit();
+    {
+        isGame = FALSE;
+
+        return;
+        //WinInit();
+    }
 
     player.objectMove();
     ChangeOffset();
@@ -89,7 +99,10 @@ void WinMove()
     {
         newGame = masObject[i].objectMove(&player);
         if (newGame)
+        {
+            
             break;
+        }
     }
 
     for (int i = 0; i < masCnt - 1; i++)
@@ -120,20 +133,31 @@ void WinShow(HDC dc)
     HBITMAP memBM = CreateCompatibleBitmap(dc, rct.right - rct.left, rct.bottom - rct.top);
     SelectObject(memDC, memBM);
 
-    SelectObject(memDC, GetStockObject(DC_BRUSH));
-    SetDCBrushColor(memDC, RGB(230, 230, 230));
-    SelectObject(memDC, GetStockObject(DC_PEN));
-    SetDCPenColor(memDC, RGB(255, 255, 255));
-    int rectSize = 200;
-    int dx = (int)offset.x % rectSize;
-    int dy = (int)offset.y % rectSize;
-    for (int i = -1; i < rct.right / rectSize + 2; i++)
-        for (int j = -1; j < rct.bottom / rectSize + 2; j++)
-            Rectangle(memDC, -dx + i * rectSize, -dy + j * rectSize, -dx + (i + 1) * rectSize, -dy + (j + 1) * rectSize);
+    if (isGame)
+    {
+        SelectObject(memDC, GetStockObject(DC_BRUSH));
+        SetDCBrushColor(memDC, RGB(230, 230, 230));
+        SelectObject(memDC, GetStockObject(DC_PEN));
+        SetDCPenColor(memDC, RGB(255, 255, 255));
+        int rectSize = 200;
+        int dx = (int)offset.x % rectSize;
+        int dy = (int)offset.y % rectSize;
+        for (int i = -1; i < rct.right / rectSize + 2; i++)
+            for (int j = -1; j < rct.bottom / rectSize + 2; j++)
+                Rectangle(memDC, -dx + i * rectSize, -dy + j * rectSize, -dx + (i + 1) * rectSize, -dy + (j + 1) * rectSize);
 
-    player.objectShow(memDC, offset);
-    for (int i = 0; i < masCnt; i++)
-        masObject[i].objectShow(memDC, offset);
+        player.objectShow(memDC, offset);
+        for (int i = 0; i < masCnt; i++)
+            masObject[i].objectShow(memDC, offset);
+    }
+    else
+    {
+        SelectObject(memDC, GetStockObject(DC_BRUSH));
+        SetDCBrushColor(memDC, RGB(255, 255, 255));
+        SelectObject(memDC, GetStockObject(DC_PEN));
+        SetDCPenColor(memDC, RGB(255, 255, 255));
+        Rectangle(memDC, 0, 0, 640, 480);
+    }
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
     DeleteDC(memDC);
@@ -221,8 +245,20 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     if (message == WM_DESTROY)
         PostQuitMessage(0);
 
+    else if (message == WM_CREATE)
+    {
+        SelectObject(dc, GetStockObject(DC_BRUSH));
+        SetDCBrushColor(dc, RGB(255, 255, 255));
+        SelectObject(dc, GetStockObject(DC_PEN));
+        SetDCPenColor(dc, RGB(255, 255, 255));
+        Rectangle(dc, 0, 0, 640, 480);
+    }
+
     else if (message == WM_KEYDOWN)
-        printf("code = %d\n", wparam);
+    {
+        if (wparam == 32)
+            WinInit();
+    }
 
     else if (message == WM_CHAR)
         printf("%c\n", wparam);
