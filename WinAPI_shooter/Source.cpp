@@ -8,11 +8,14 @@
 
 using namespace std;
 
+char textNewGame[] = u8"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел";
+
 RECT rct;
 object player;
 object* masObject;
 int masCnt = 0;
 point offset;
+
 BOOL newGame = FALSE;
 BOOL isGame = FALSE;
 int score = 0;
@@ -68,6 +71,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
             }
         }
     }
+
     if (masCnt > 0)
         delete[] masObject;
 
@@ -93,6 +97,8 @@ void WinMove()
     if (newGame)
     {
         isGame = FALSE;
+        //WinInit();
+        DelObject();
         return;
     }
 
@@ -109,7 +115,9 @@ void WinMove()
                 score = numEnemy;
                 //numEnemy = 0;
             }
-            break;
+            //break;
+            DelObject();
+            return;
         }
     }
 
@@ -137,8 +145,14 @@ void WinMove()
 // Функция реализации изображения игры 
 void WinShow(HDC dc)
 {
+    HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY, DEFAULT_PITCH | FF_ROMAN, NULL);
+
     PAINTSTRUCT ps;
-    char buff[50];
+    //char buff[50];
+    //char* buff;
+    //LPWSTR buff = new TCHAR [10];
     int numChar;
 
     HDC memDC = CreateCompatibleDC(dc);
@@ -162,10 +176,13 @@ void WinShow(HDC dc)
         for (int i = 0; i < masCnt; i++)
             masObject[i].objectShow(memDC, offset);
 
-        numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
-        BeginPaint(hwnd, &ps);
-        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
-        EndPaint(hwnd, &ps);
+        //buff = new char[10];
+        //numChar = wsprintf(buff, L"%d / %d", numEnemy, score);
+        //BeginPaint(hwnd, &ps);
+        ///SelectObject(memDC, font);
+        //TextOut(memDC, 10, 10, buff, numChar);
+        //dddEndPaint(hwnd, &ps);
+        //delete[] buff;
     }
     else
     {
@@ -175,15 +192,25 @@ void WinShow(HDC dc)
         SetDCPenColor(memDC, RGB(255, 255, 255));
         Rectangle(memDC, 0, 0, 640, 480);
 
-        numChar = wsprintf((LPWSTR)buff, L"%d", score);
+        /*numChar = wsprintf((LPWSTR)buff, L"%d", score);
         BeginPaint(hwnd, &ps);
         TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
-        EndPaint(hwnd, &ps);
+        EndPaint(hwnd, &ps);*/
+
+        /*BeginPaint(hwnd, &ps);
+        SelectObject(memDC, font);
+        RECT r = rct;
+        r.top = 100;
+        DrawTextA(memDC, "Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел", 
+            lstrlen(L"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел"), 
+            &r, DT_CENTER);
+        EndPaint(hwnd, &ps);*/
     }
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
     DeleteDC(memDC);
     DeleteObject(memBM);
+    SendMessage(hwnd, WM_PAINT, 0, 0);
 }
 
 void NewObject(float xPos, float yPos, float width, float height, TYPE type)
@@ -210,22 +237,35 @@ void DelObject()
         int cnt = masCnt;
         for (int i = 0; i < masCnt; i++)
         {
-            if (masObject[i].GetIsDel())
+            /*if (masObject[i].GetIsDel())
             {
-                masCnt--;
-                masObject[i] = masObject[masCnt];
-
                 if (masObject[i].GetType() == ENEMY)
                     numEnemy++;
+                masCnt--;
+                masObject[i] = masObject[masCnt];
             }
             object* buf = new object[masCnt];
             for (int j = 0; j < masCnt; j++)
                 buf[j] = masObject[j];
             delete[] masObject;
-            masObject = buf;
+            masObject = buf;*/
+
+            if (masObject[i].GetIsDel())
+            {
+                if (masObject[i].GetType() == ENEMY)
+                    numEnemy++;
+                masCnt--;
+                masObject[i] = masObject[masCnt];
+                object* buf = new object[masCnt];
+                for (int j = 0; j < masCnt; j++)
+                    buf[j] = masObject[j];
+                delete[] masObject;
+                masObject = buf;
+                i = -1;
+            }
         }
     }
-    if (masCnt == 1)
+    else if (masCnt == 1)
     {
         if (masObject[0].GetIsDel())
         {
@@ -274,18 +314,42 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else if (message == WM_CREATE)
     {
-        /*numEnemy = 0;*/
+        PAINTSTRUCT ps;
+        GetClientRect(hwnd, &rct);
+
         SelectObject(dc, GetStockObject(DC_BRUSH));
         SetDCBrushColor(dc, RGB(255, 255, 255));
         SelectObject(dc, GetStockObject(DC_PEN));
         SetDCPenColor(dc, RGB(255, 255, 255));
         Rectangle(dc, 0, 0, 640, 480);
+
+        BeginPaint(hwnd, &ps);
+        TextOut(dc, 10, 10, (LPWSTR)textNewGame, lstrlen((LPWSTR)textNewGame));
+        EndPaint(hwnd, &ps);
     }
+    //else if (message == WM_PAINT)
+    //{
+    //    HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+    //        DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
+    //        DEFAULT_QUALITY, DEFAULT_PITCH | FF_ROMAN, NULL);
+    //    PAINTSTRUCT ps;
+    //    HDC hdc;
+    //    //buff = new char[10];
+    //    char buff[10];
+    //    int numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
+    //    hdc = BeginPaint(hwnd, &ps);
+    //    SelectObject(hdc, font);
+    //    TextOut(hdc, 10, 10, (LPWSTR)buff, 10);
+    //    EndPaint(hwnd, &ps);
+    //}
 
     else if (message == WM_KEYDOWN)
     {
+
         if (wparam == 32)
+        {
             WinInit();
+        }
     }
 
     else if (message == WM_SIZE)
@@ -304,4 +368,6 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else
         return DefWindowProcA(hwnd, message, wparam, lparam);
+
+    return NULL;
 }
