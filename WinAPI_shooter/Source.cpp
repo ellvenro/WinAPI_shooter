@@ -26,7 +26,8 @@ void ChangeOffset();
 
 LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
-int main()
+//int main()
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
     WNDCLASSA wlc;
     memset(&wlc, 0, sizeof(WNDCLASSA));
