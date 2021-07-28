@@ -1,8 +1,8 @@
-#include <math.h>
+п»ї#include <math.h>
 
 #include "object.h"
 
-// Функция для инициализации точки
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё С‚РѕС‡РєРё
 void pointInit(point& pnt, float x, float y)
 {
 	pnt.x = x;
@@ -21,7 +21,7 @@ object::object()
 	isDel = FALSE;
 }
 
-// Конструктор копирования для реализации передачи объектов в функции 
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РґР»СЏ СЂРµР°Р»РёР·Р°С†РёРё РїРµСЂРµРґР°С‡Рё РѕР±СЉРµРєС‚РѕРІ РІ С„СѓРЅРєС†РёРё 
 object::object(const object& obj)
 {
 	pointInit(pos, obj.pos.x, obj.pos.y);
@@ -34,7 +34,7 @@ object::object(const object& obj)
 	isDel = obj.isDel;
 }
 
-// Функция для инициализации объекта класса
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР°
 void object::objectInit(float xPos, float yPos, float width, float height, TYPE oType)
 {
 	pointInit(pos, xPos, yPos);
@@ -48,7 +48,7 @@ void object::objectInit(float xPos, float yPos, float width, float height, TYPE 
 	isDel = FALSE;
 }
 
-// Функция отображает объект в контексте устройства
+// Р¤СѓРЅРєС†РёСЏ РѕС‚РѕР±СЂР°Р¶Р°РµС‚ РѕР±СЉРµРєС‚ РІ РєРѕРЅС‚РµРєСЃС‚Рµ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 void object::objectShow(HDC dc, point offset)
 {
 	SelectObject(dc, GetStockObject(DC_BRUSH));
@@ -60,10 +60,10 @@ void object::objectShow(HDC dc, point offset)
 	shape(dc, (int)(pos.x - offset.x), (int)(pos.y - offset.y), (int)(pos.x + size.x - offset.x), (int)(pos.y + size.y - offset.y));
 }
 
-// Функция, производящая изменение координат объекта
+// Р¤СѓРЅРєС†РёСЏ, РїСЂРѕРёР·РІРѕРґСЏС‰Р°СЏ РёР·РјРµРЅРµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РѕР±СЉРµРєС‚Р°
 BOOL object::objectMove(object *player)
 {
-	// Изменение направления движения врага и проверка на столкновение с игроком
+	// РР·РјРµРЅРµРЅРёРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ РґРІРёР¶РµРЅРёСЏ РІСЂР°РіР° Рё РїСЂРѕРІРµСЂРєР° РЅР° СЃС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РёРіСЂРѕРєРѕРј
 	if (type == ENEMY)
 	{
 		if (rand() % 40 == 1)
@@ -75,7 +75,7 @@ BOOL object::objectMove(object *player)
 			return TRUE;
 	}
 
-	// Изменение направления движения игрока в зависимости от нажатых клавиш
+	// РР·РјРµРЅРµРЅРёРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ РґРІРёР¶РµРЅРёСЏ РёРіСЂРѕРєР° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РЅР°Р¶Р°С‚С‹С… РєР»Р°РІРёС€
 	if (type == PLAYER)
 	{
 		int playerSpeed = 2;
@@ -95,7 +95,7 @@ BOOL object::objectMove(object *player)
 		}
 	}
 
-	// Проверка движения пули, если расстояние привышает 300 пикселей, то пуля удаляется
+	// РџСЂРѕРІРµСЂРєР° РґРІРёР¶РµРЅРёСЏ РїСѓР»Рё, РµСЃР»Рё СЂР°СЃСЃС‚РѕСЏРЅРёРµ РїСЂРёРІС‹С€Р°РµС‚ 300 РїРёРєСЃРµР»РµР№, С‚Рѕ РїСѓР»СЏ СѓРґР°Р»СЏРµС‚СЃСЏ
 	if (type == BULLET)
 	{
 		range -= vecSpeed;
@@ -109,7 +109,7 @@ BOOL object::objectMove(object *player)
 	return FALSE;
 }
 
-// Функция задания скорости объекта в зависимости от конечной точки
+// Р¤СѓРЅРєС†РёСЏ Р·Р°РґР°РЅРёСЏ СЃРєРѕСЂРѕСЃС‚Рё РѕР±СЉРµРєС‚Р° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РєРѕРЅРµС‡РЅРѕР№ С‚РѕС‡РєРё
 void object::objectDestination(float xPos, float yPos, float vecSpeed)
 {
 	point pnt;
@@ -152,7 +152,7 @@ object& object::operator=(object& obj)
 	return *this;
 }
 
-// Дружественная функция для проверки пересечения двух объектов
+// Р”СЂСѓР¶РµСЃС‚РІРµРЅРЅР°СЏ С„СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё РїРµСЂРµСЃРµС‡РµРЅРёСЏ РґРІСѓС… РѕР±СЉРµРєС‚РѕРІ
 BOOL CrossingObject(object& obj1, object& obj2)
 {
 

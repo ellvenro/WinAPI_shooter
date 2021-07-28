@@ -1,4 +1,4 @@
-#include <Windows.h>
+п»ї#include <Windows.h>
 #include <iostream>
 
 #include "object.h"
@@ -64,7 +64,7 @@ int main()
     return 0;
 }
 
-// Функция инициализации игры
+// Р¤СѓРЅРєС†РёСЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РёРіСЂС‹
 void WinInit()
 {
     newGame = FALSE;
@@ -75,7 +75,7 @@ void WinInit()
     player.objectInit(100, 100, 40, 40, PLAYER);
 }
 
-// Функция, реализующая сдвиг всех объектов и удаление ненужных
+// Р¤СѓРЅРєС†РёСЏ, СЂРµР°Р»РёР·СѓСЋС‰Р°СЏ СЃРґРІРёРі РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ Рё СѓРґР°Р»РµРЅРёРµ РЅРµРЅСѓР¶РЅС‹
 void WinMove()
 {
     if (newGame)
@@ -112,7 +112,7 @@ void WinMove()
     DelObject();
 }
 
-// Функция реализации изображения игры 
+// Р¤СѓРЅРєС†РёСЏ СЂРµР°Р»РёР·Р°С†РёРё РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РёРіСЂС‹ 
 void WinShow(HDC dc)
 {
     HDC memDC = CreateCompatibleDC(dc);
