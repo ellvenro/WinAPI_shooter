@@ -1,5 +1,8 @@
-﻿#include <Windows.h>
+﻿#define _CRT_SECURE_NO_WARNINGS
+
+#include <Windows.h>
 #include <iostream>
+#include <stdio.h>
 
 #include "object.h"
 
@@ -12,6 +15,8 @@ int masCnt = 0;
 point offset;
 BOOL newGame = FALSE;
 BOOL isGame = FALSE;
+int score = 0;
+int numEnemy = 0;
 
 HWND hwnd;
 HDC dc;
@@ -72,6 +77,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 // Функция инициализации игры
 void WinInit()
 {
+    numEnemy = 0;
     isGame = TRUE;
     newGame = FALSE;
     if (masCnt > 0)
@@ -87,9 +93,7 @@ void WinMove()
     if (newGame)
     {
         isGame = FALSE;
-
         return;
-        //WinInit();
     }
 
     player.objectMove();
@@ -100,7 +104,11 @@ void WinMove()
         newGame = masObject[i].objectMove(&player);
         if (newGame)
         {
-            
+            if (score < numEnemy)
+            {
+                score = numEnemy;
+                //numEnemy = 0;
+            }
             break;
         }
     }
@@ -129,6 +137,10 @@ void WinMove()
 // Функция реализации изображения игры 
 void WinShow(HDC dc)
 {
+    PAINTSTRUCT ps;
+    char buff[50];
+    int numChar;
+
     HDC memDC = CreateCompatibleDC(dc);
     HBITMAP memBM = CreateCompatibleBitmap(dc, rct.right - rct.left, rct.bottom - rct.top);
     SelectObject(memDC, memBM);
@@ -149,6 +161,11 @@ void WinShow(HDC dc)
         player.objectShow(memDC, offset);
         for (int i = 0; i < masCnt; i++)
             masObject[i].objectShow(memDC, offset);
+
+        numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
+        BeginPaint(hwnd, &ps);
+        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
+        EndPaint(hwnd, &ps);
     }
     else
     {
@@ -157,6 +174,11 @@ void WinShow(HDC dc)
         SelectObject(memDC, GetStockObject(DC_PEN));
         SetDCPenColor(memDC, RGB(255, 255, 255));
         Rectangle(memDC, 0, 0, 640, 480);
+
+        numChar = wsprintf((LPWSTR)buff, L"%d", score);
+        BeginPaint(hwnd, &ps);
+        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
+        EndPaint(hwnd, &ps);
     }
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
@@ -192,6 +214,9 @@ void DelObject()
             {
                 masCnt--;
                 masObject[i] = masObject[masCnt];
+
+                if (masObject[i].GetType() == ENEMY)
+                    numEnemy++;
             }
             object* buf = new object[masCnt];
             for (int j = 0; j < masCnt; j++)
@@ -204,6 +229,8 @@ void DelObject()
     {
         if (masObject[0].GetIsDel())
         {
+            if (masObject[0].GetType() == ENEMY)
+                numEnemy++;
             delete[] masObject;
             masCnt--;
         }
@@ -247,6 +274,7 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else if (message == WM_CREATE)
     {
+        /*numEnemy = 0;*/
         SelectObject(dc, GetStockObject(DC_BRUSH));
         SetDCBrushColor(dc, RGB(255, 255, 255));
         SelectObject(dc, GetStockObject(DC_PEN));
@@ -260,17 +288,11 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             WinInit();
     }
 
-    else if (message == WM_CHAR)
-        printf("%c\n", wparam);
-
     else if (message == WM_SIZE)
         GetClientRect(hwnd, &rct);
 
     else if (message == WM_MOUSEMOVE)
     {
-        int xPos = LOWORD(lparam);
-        int yPos = HIWORD(lparam);
-        //printf("mouse: %d, %d\n", xPos, yPos);
     }
 
     else if (message == WM_LBUTTONDOWN)
@@ -278,12 +300,6 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         int xPos = LOWORD(lparam);
         int yPos = HIWORD(lparam);
         AddBullet(xPos + offset.x, yPos + offset.y);
-    }
-
-    else if (message == WM_RBUTTONDOWN)
-    {
-        for (int i = 0; i < masCnt; i++)
-            cout << i << ": " << masObject[i].GetType() << endl;
     }
 
     else
