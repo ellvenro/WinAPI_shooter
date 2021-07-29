@@ -147,12 +147,10 @@ void WinShow(HDC dc)
 {
     HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
-        DEFAULT_QUALITY, DEFAULT_PITCH | FF_ROMAN, NULL);
+        DEFAULT_QUALITY, DEFAULT_PITCH /*VARIABLE_PITCH*/ /*FIXED_PITCH*/ /*| FF_ROMAN*/, L"Times New Roman");
 
     PAINTSTRUCT ps;
-    //char buff[50];
-    //char* buff;
-    //LPWSTR buff = new TCHAR [10];
+    char buff[50];
     int numChar;
 
     HDC memDC = CreateCompatibleDC(dc);
@@ -176,13 +174,12 @@ void WinShow(HDC dc)
         for (int i = 0; i < masCnt; i++)
             masObject[i].objectShow(memDC, offset);
 
-        //buff = new char[10];
-        //numChar = wsprintf(buff, L"%d / %d", numEnemy, score);
-        //BeginPaint(hwnd, &ps);
-        ///SelectObject(memDC, font);
-        //TextOut(memDC, 10, 10, buff, numChar);
-        //dddEndPaint(hwnd, &ps);
-        //delete[] buff;
+        numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
+        BeginPaint(hwnd, &ps);
+        SelectObject(memDC, font);
+        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
+        EndPaint(hwnd, &ps);
+        DeleteObject(font);
     }
     else
     {
@@ -192,19 +189,26 @@ void WinShow(HDC dc)
         SetDCPenColor(memDC, RGB(255, 255, 255));
         Rectangle(memDC, 0, 0, 640, 480);
 
-        /*numChar = wsprintf((LPWSTR)buff, L"%d", score);
         BeginPaint(hwnd, &ps);
-        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
-        EndPaint(hwnd, &ps);*/
-
-        /*BeginPaint(hwnd, &ps);
         SelectObject(memDC, font);
         RECT r = rct;
-        r.top = 100;
-        DrawTextA(memDC, "Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел", 
-            lstrlen(L"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел"), 
-            &r, DT_CENTER);
-        EndPaint(hwnd, &ps);*/
+        r.left = 100;
+        r.top = 150;
+
+        DrawTextA(memDC, "Клавиши для перемещения - W, A, S, D", lstrlen(L"Клавиши для перемещения - W, A, S, D"), &r, DT_LEFT);
+        r.top += 20 + 10;
+        DrawTextA(memDC, "Стрельба - правая кнопка мыши", lstrlen(L"Стрельба - правая кнопка мыши"), &r, DT_LEFT);
+        r.top += 20 + 10;
+        DrawTextA(memDC, "Начало игры - ПРОБЕЛ", lstrlen(L"Начало игры - ПРОБЕЛ"), &r, DT_LEFT);
+        //DrawTextA(memDC, "Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите ПРОБЕЛ", 
+        //    lstrlen(L"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите ПРОБЕЛ"), 
+        //    &r, DT_LEFT/*DT_CENTER*/);
+        numChar = wsprintf((LPWSTR)buff, L"Рекорд: %d", score);
+        TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
+        DeleteObject(font);
+        EndPaint(hwnd, &ps);
+
+
     }
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
@@ -292,7 +296,7 @@ void AddEnemy()
     int pos2 = (rand() % (rad * 2)) - rad;
     float x, y;
     player.GetPos(x, y);
-    int k = rand() % 120;
+    int k = rand() % 100;
     if (k == 1)
         NewObject(pos1 + x, pos2 + y, 40, 40, ENEMY);
     if (k == 2)
@@ -314,38 +318,11 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else if (message == WM_CREATE)
     {
-        PAINTSTRUCT ps;
         GetClientRect(hwnd, &rct);
-
-        SelectObject(dc, GetStockObject(DC_BRUSH));
-        SetDCBrushColor(dc, RGB(255, 255, 255));
-        SelectObject(dc, GetStockObject(DC_PEN));
-        SetDCPenColor(dc, RGB(255, 255, 255));
-        Rectangle(dc, 0, 0, 640, 480);
-
-        BeginPaint(hwnd, &ps);
-        TextOut(dc, 10, 10, (LPWSTR)textNewGame, lstrlen((LPWSTR)textNewGame));
-        EndPaint(hwnd, &ps);
     }
-    //else if (message == WM_PAINT)
-    //{
-    //    HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
-    //        DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
-    //        DEFAULT_QUALITY, DEFAULT_PITCH | FF_ROMAN, NULL);
-    //    PAINTSTRUCT ps;
-    //    HDC hdc;
-    //    //buff = new char[10];
-    //    char buff[10];
-    //    int numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
-    //    hdc = BeginPaint(hwnd, &ps);
-    //    SelectObject(hdc, font);
-    //    TextOut(hdc, 10, 10, (LPWSTR)buff, 10);
-    //    EndPaint(hwnd, &ps);
-    //}
 
     else if (message == WM_KEYDOWN)
     {
-
         if (wparam == 32)
         {
             WinInit();
@@ -361,9 +338,14 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else if (message == WM_LBUTTONDOWN)
     {
-        int xPos = LOWORD(lparam);
-        int yPos = HIWORD(lparam);
-        AddBullet(xPos + offset.x, yPos + offset.y);
+        if (isGame == TRUE)
+        {
+            int xPos = LOWORD(lparam);
+            int yPos = HIWORD(lparam);
+            AddBullet(xPos + offset.x, yPos + offset.y);
+        }
+        else
+            WinShow(dc);
     }
 
     else
