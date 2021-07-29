@@ -45,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 
     hwnd = CreateWindowExA(WS_EX_LAYERED, "my Window", "Window", 
         WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX, 
-        10, 10, 640, 480, NULL, NULL, NULL, NULL);
+        430, 200, 640, 480, NULL, NULL, NULL, NULL);
     SetLayeredWindowAttributes(hwnd, 0, 230, LWA_ALPHA);
 
     dc = GetDC(hwnd);
