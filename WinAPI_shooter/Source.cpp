@@ -50,6 +50,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 
     dc = GetDC(hwnd);
     ShowWindow(hwnd, SW_SHOWNORMAL);
+    WinShow(dc);
 
     MSG msg;
     while (1)
@@ -313,9 +314,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     else if (message == WM_KEYDOWN)
     {
         if (wparam == 32)
-        {
             WinInit();
-        }
     }
 
     else if (message == WM_SIZE)
