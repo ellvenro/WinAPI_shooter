@@ -13,12 +13,12 @@ object player;
 object* masObject;
 int masCnt = 0;
 point offset;
-int rate; // Скорость появления врагов
 
 BOOL newGame = FALSE;
 BOOL isGame = FALSE;
 int score = 0;
 int numEnemy = 0;
+int rate;                       // Скорость появления врагов
 
 HWND hwnd;
 HDC dc;
@@ -34,7 +34,6 @@ void ChangeOffset();
 
 LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
-//int main()
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
     WNDCLASSA wlc;
@@ -82,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 // Функция инициализации игры
 void WinInit()
 {
-    rate = 120;
+    rate = 140;
     numEnemy = 0;
     isGame = TRUE;
     newGame = FALSE;
@@ -99,7 +98,6 @@ void WinMove()
     if (newGame)
     {
         isGame = FALSE;
-        //WinInit();
         DelObject();
         return;
     }
@@ -113,9 +111,7 @@ void WinMove()
         if (newGame)
         {
             if (score < numEnemy)
-            {
                 score = numEnemy;
-            }
             DelObject();
             return;
         }
@@ -125,24 +121,20 @@ void WinMove()
     {
         if (masObject[i].GetType() == ENEMY)
             for (int j = i + 1; j < masCnt; j++)
-            {
                 if (masObject[j].GetType() == BULLET)
                     CrossingObject(masObject[i], masObject[j]);
-            }
 
         if (masObject[i].GetType() == BULLET)
             for (int j = i + 1; j < masCnt; j++)
-            {
                 if (masObject[j].GetType() == ENEMY)
                     CrossingObject(masObject[i], masObject[j]);
-            }
     }
 
     AddEnemy();
     DelObject();
 }
 
-// Функция реализации изображения игры 
+// Функция реализации изображения игры с помощью буфера в зависимоти от флага isGame
 void WinShow(HDC dc)
 {
     HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
@@ -174,7 +166,7 @@ void WinShow(HDC dc)
         for (int i = 0; i < masCnt; i++)
             masObject[i].objectShow(memDC, offset);
 
-        numChar = wsprintf((LPWSTR)buff, L"%d / %d - %d", numEnemy, score, rate);
+        numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
         BeginPaint(hwnd, &ps);
         SelectObject(memDC, font);
         TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
@@ -230,6 +222,7 @@ void NewObject(float xPos, float yPos, float width, float height, TYPE type)
     masCnt++;
 }
 
+// Функция, реализующая удаление объектов, изменение количества убитых врагов и изменение частоты их появления при необходимости
 void DelObject()
 {
     if (masCnt > 1)
@@ -242,7 +235,7 @@ void DelObject()
                 if (masObject[i].GetType() == ENEMY)
                 {
                     numEnemy++;
-                    if (numEnemy % 20 == 0 && rate > 40)
+                    if (numEnemy % 30 == 0 && rate > 40)
                         rate -= 10;
                 }
                 masCnt--;
@@ -256,6 +249,7 @@ void DelObject()
             }
         }
     }
+
     else if (masCnt == 1)
     {
         if (masObject[0].GetIsDel())
@@ -263,7 +257,7 @@ void DelObject()
             if (masObject[0].GetType() == ENEMY)
             {
                 numEnemy++;
-                if (numEnemy % 20 == 0 && rate > 40)
+                if (numEnemy % 30 == 0 && rate > 40)
                     rate -= 10;
             }
             delete[] masObject;
@@ -272,6 +266,7 @@ void DelObject()
     }
 }
 
+// Функция, реализующая добавление пули после нажатие на клавишу мыши, летящюю в ее сторону
 void AddBullet(float x, float y)
 {
     float xPos, yPos;
@@ -280,6 +275,7 @@ void AddBullet(float x, float y)
     masObject[masCnt - 1].objectDestination(x, y, 4);
 }
 
+// Функция, реализующая добавление врагов на расстоянии минимум 300 пикселей от игрока, с частотой rate
 void AddEnemy()
 {
     int rad = 300;
@@ -294,6 +290,7 @@ void AddEnemy()
         NewObject(pos2 + x, pos1 + y, 40, 40, ENEMY);
 }
 
+// Функция, изменяющая параметр сдвига всех объектов в зависимости от положения игрока, чтобы он постоянно оставался в центре окна
 void ChangeOffset()
 {
     float x, y;
@@ -302,7 +299,8 @@ void ChangeOffset()
     offset.y = y + 20 - rct.bottom / 2;
 }
 
-LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+// Функция, реализующая отклик на сообщения пользователя
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (message == WM_DESTROY)
         PostQuitMessage(0);
@@ -322,10 +320,6 @@ LRESULT CALLBACK  WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     else if (message == WM_SIZE)
         GetClientRect(hwnd, &rct);
-
-    else if (message == WM_MOUSEMOVE)
-    {
-    }
 
     else if (message == WM_LBUTTONDOWN)
     {
