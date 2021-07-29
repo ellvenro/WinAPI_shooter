@@ -8,13 +8,12 @@
 
 using namespace std;
 
-char textNewGame[] = u8"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите пробел";
-
 RECT rct;
 object player;
 object* masObject;
 int masCnt = 0;
 point offset;
+int rate; // Скорость появления врагов
 
 BOOL newGame = FALSE;
 BOOL isGame = FALSE;
@@ -45,11 +44,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
     wlc.hCursor = LoadCursorA(NULL, (LPCSTR)IDC_CROSS);
     RegisterClassA(&wlc);
 
-    hwnd = CreateWindowExA(NULL, "my Window", "Window", WS_OVERLAPPEDWINDOW, 10, 10, 640, 480, NULL, NULL, NULL, NULL);
+    hwnd = CreateWindowExA(WS_EX_LAYERED, "my Window", "Window", 
+        WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX, 
+        10, 10, 640, 480, NULL, NULL, NULL, NULL);
+    SetLayeredWindowAttributes(hwnd, 0, 230, LWA_ALPHA);
+
     dc = GetDC(hwnd);
     ShowWindow(hwnd, SW_SHOWNORMAL);
-
-    //WinInit();
 
     MSG msg;
     while (1)
@@ -81,6 +82,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nC
 // Функция инициализации игры
 void WinInit()
 {
+    rate = 120;
     numEnemy = 0;
     isGame = TRUE;
     newGame = FALSE;
@@ -113,9 +115,7 @@ void WinMove()
             if (score < numEnemy)
             {
                 score = numEnemy;
-                //numEnemy = 0;
             }
-            //break;
             DelObject();
             return;
         }
@@ -147,7 +147,7 @@ void WinShow(HDC dc)
 {
     HFONT font = CreateFont(20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
-        DEFAULT_QUALITY, DEFAULT_PITCH /*VARIABLE_PITCH*/ /*FIXED_PITCH*/ /*| FF_ROMAN*/, L"Times New Roman");
+        DEFAULT_QUALITY, DEFAULT_PITCH, L"Times New Roman");
 
     PAINTSTRUCT ps;
     char buff[50];
@@ -174,7 +174,7 @@ void WinShow(HDC dc)
         for (int i = 0; i < masCnt; i++)
             masObject[i].objectShow(memDC, offset);
 
-        numChar = wsprintf((LPWSTR)buff, L"%d / %d", numEnemy, score);
+        numChar = wsprintf((LPWSTR)buff, L"%d / %d - %d", numEnemy, score, rate);
         BeginPaint(hwnd, &ps);
         SelectObject(memDC, font);
         TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
@@ -191,24 +191,20 @@ void WinShow(HDC dc)
 
         BeginPaint(hwnd, &ps);
         SelectObject(memDC, font);
+
         RECT r = rct;
         r.left = 100;
         r.top = 150;
-
         DrawTextA(memDC, "Клавиши для перемещения - W, A, S, D", lstrlen(L"Клавиши для перемещения - W, A, S, D"), &r, DT_LEFT);
         r.top += 20 + 10;
         DrawTextA(memDC, "Стрельба - правая кнопка мыши", lstrlen(L"Стрельба - правая кнопка мыши"), &r, DT_LEFT);
         r.top += 20 + 10;
         DrawTextA(memDC, "Начало игры - ПРОБЕЛ", lstrlen(L"Начало игры - ПРОБЕЛ"), &r, DT_LEFT);
-        //DrawTextA(memDC, "Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите ПРОБЕЛ", 
-        //    lstrlen(L"Простенький шутер\nКлавиши для перемещения - W, A, S, D\nСтрельба - правая кнопка мыши\nДля начала игры нажмите ПРОБЕЛ"), 
-        //    &r, DT_LEFT/*DT_CENTER*/);
         numChar = wsprintf((LPWSTR)buff, L"Рекорд: %d", score);
         TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
+
         DeleteObject(font);
         EndPaint(hwnd, &ps);
-
-
     }
 
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
@@ -241,23 +237,14 @@ void DelObject()
         int cnt = masCnt;
         for (int i = 0; i < masCnt; i++)
         {
-            /*if (masObject[i].GetIsDel())
-            {
-                if (masObject[i].GetType() == ENEMY)
-                    numEnemy++;
-                masCnt--;
-                masObject[i] = masObject[masCnt];
-            }
-            object* buf = new object[masCnt];
-            for (int j = 0; j < masCnt; j++)
-                buf[j] = masObject[j];
-            delete[] masObject;
-            masObject = buf;*/
-
             if (masObject[i].GetIsDel())
             {
                 if (masObject[i].GetType() == ENEMY)
+                {
                     numEnemy++;
+                    if (numEnemy % 20 == 0 && rate > 40)
+                        rate -= 10;
+                }
                 masCnt--;
                 masObject[i] = masObject[masCnt];
                 object* buf = new object[masCnt];
@@ -274,7 +261,11 @@ void DelObject()
         if (masObject[0].GetIsDel())
         {
             if (masObject[0].GetType() == ENEMY)
+            {
                 numEnemy++;
+                if (numEnemy % 20 == 0 && rate > 40)
+                    rate -= 10;
+            }
             delete[] masObject;
             masCnt--;
         }
@@ -296,7 +287,7 @@ void AddEnemy()
     int pos2 = (rand() % (rad * 2)) - rad;
     float x, y;
     player.GetPos(x, y);
-    int k = rand() % 100;
+    int k = rand() % rate;
     if (k == 1)
         NewObject(pos1 + x, pos2 + y, 40, 40, ENEMY);
     if (k == 2)
