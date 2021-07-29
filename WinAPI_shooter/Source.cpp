@@ -171,8 +171,8 @@ void WinShow(HDC dc)
         BeginPaint(hwnd, &ps);
         SelectObject(memDC, font);
         TextOut(memDC, 10, 10, (LPWSTR)buff, numChar);
-        EndPaint(hwnd, &ps);
         DeleteObject(font);
+        EndPaint(hwnd, &ps);
     }
     else
     {
@@ -190,7 +190,7 @@ void WinShow(HDC dc)
         r.top = 150;
         DrawTextA(memDC, "Клавиши для перемещения - W, A, S, D", lstrlen(L"Клавиши для перемещения - W, A, S, D"), &r, DT_LEFT);
         r.top += 20 + 10;
-        DrawTextA(memDC, "Стрельба - правая кнопка мыши", lstrlen(L"Стрельба - правая кнопка мыши"), &r, DT_LEFT);
+        DrawTextA(memDC, "Стрельба - левая кнопка мыши", lstrlen(L"Стрельба - левая кнопка мыши"), &r, DT_LEFT);
         r.top += 20 + 10;
         DrawTextA(memDC, "Начало игры - ПРОБЕЛ", lstrlen(L"Начало игры - ПРОБЕЛ"), &r, DT_LEFT);
         numChar = wsprintf((LPWSTR)buff, L"Рекорд: %d", score);
@@ -203,7 +203,6 @@ void WinShow(HDC dc)
     BitBlt(dc, 0, 0, rct.right - rct.left, rct.bottom - rct.top, memDC, 0, 0, SRCCOPY);
     DeleteDC(memDC);
     DeleteObject(memBM);
-    SendMessage(hwnd, WM_PAINT, 0, 0);
 }
 
 void NewObject(float xPos, float yPos, float width, float height, TYPE type)
